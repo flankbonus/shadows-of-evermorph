@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17130f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Evermorph Score Keeper">
+<link rel="manifest" href="manifest.json">
+<title>Shadows of Evermorph</title>
+<style>
+:root{--ink:#201a15;--paper:#ead9b8;--paper2:#d9c39b;--red:#6f211c;--line:#3a2c20;--dark:#17130f}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--dark);color:var(--ink)}
+body{font-family:Georgia,serif;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}
+.wrap{max-width:900px;margin:auto;padding:12px 0 20px}.sheet{background:var(--paper);border:4px double var(--line);box-shadow:0 8px 30px #0008;padding:14px}
+h1{text-align:center;margin:0;font-size:clamp(26px,6vw,38px);letter-spacing:2px;text-transform:uppercase;color:#000}
+.sub{text-align:center;font-size:12px;margin:2px 0 12px;letter-spacing:2px}
+.total{border:3px solid var(--line);background:var(--paper2);padding:10px;text-align:center;margin-bottom:10px}
+.total small{display:block;text-transform:uppercase;letter-spacing:2px}.score{font-size:clamp(34px,8vw,46px);font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.card{border:2px solid var(--line);padding:9px;background:#ead9b899}.wide{grid-column:1/-1}
+.card h2{font-size:17px;margin:0 0 7px;text-transform:uppercase}
+.controls{display:flex;align-items:center;gap:6px}.val{font-size:23px;min-width:58px;text-align:center;font-weight:bold}
+button{font:700 17px Georgia,serif;background:var(--red);color:#f5e6c5;border:2px solid var(--line);padding:7px 10px;cursor:pointer;touch-action:manipulation;min-height:42px}
+button:active{transform:translateY(1px)}button:disabled{opacity:.5;cursor:not-allowed}
+.note{font-size:11px;margin-top:4px}.monster-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.monster-grid button{font-size:14px;padding:6px 3px}.monster-total{text-align:center;font-size:19px;font-weight:bold;margin-top:7px}
+input{font:20px Georgia,serif;width:100%;background:#f2e3c3;border:2px solid var(--line);padding:7px}
+.reset{display:block;margin:12px auto 0;background:#332920}.install{display:none;margin:0 auto 10px;background:#332920}
+.time-display{font-size:28px;font-weight:bold;text-align:center;margin-bottom:6px;letter-spacing:1px}
+.time-actions{display:flex;gap:6px}.time-actions button{flex:1}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.monster-grid{grid-template-columns:repeat(2,1fr)}.sheet{padding:10px}.card{padding:8px}}
+</style>
+</head>
+<body>
+<div class="wrap"><main class="sheet">
+<h1>Shadows of Evermorph</h1>
+<div class="sub">Dungeon Score • OSR Ledger</div>
+<button id="install" class="install">Install App</button>
+<section class="total"><small>Total Score</small><div class="score" id="total">0</div></section>
+
+<div class="grid">
+<div class="card"><h2>Tiles</h2><div class="controls">
+<button onclick="add('tiles',-1)">−</button><div class="val" id="tiles">0</div><button onclick="add('tiles',1)">+</button>
+</div><div class="note">+1 point each</div></div>
+
+<div class="card"><h2>Solved Face</h2><div class="controls">
+<button onclick="add('face',-500)">−</button><div class="val" id="face">0</div><button onclick="add('face',500)">+500</button>
+</div><div class="note">500 points</div></div>
+
+<div class="card wide"><h2>Time Left</h2>
+<div class="time-display" id="clock">2:00:00</div>
+<div class="time-actions">
+<button id="timeScore" onclick="scoreTime()">TIME SCORE</button>
+<button onclick="add('time',-1)">−1 TIME POINT</button>
+</div>
+<div class="note">1 point per 10 seconds remaining • TIME SCORE can only be used once</div>
+</div>
+
+<div class="card wide"><h2>Monsters</h2>
+<div class="monster-grid">
+<button onclick="add('monsters',1)">+ LV1</button><button onclick="add('monsters',2)">+ LV2</button>
+<button onclick="add('monsters',3)">+ LV3</button><button onclick="add('monsters',4)">+ LV4</button>
+<button onclick="add('monsters',5)">+ LV5</button><button onclick="add('monsters',6)">+ LV6</button>
+<button onclick="add('monsters',7)">+ LV7</button><button onclick="add('monsters',8)">+ LV8</button>
+<button onclick="add('monsters',9)">+ LV9</button><button onclick="add('monsters',10)">+ LV10</button>
+</div>
+<div class="monster-total">Monster Points: <span id="monsters">0</span></div>
+<div style="text-align:center;margin-top:6px"><button onclick="add('monsters',-1)">−1 MONSTER POINT</button></div>
+<div class="note">+1 point per monster level</div></div>
+
+<div class="card"><h2>Magic Items</h2><div class="controls">
+<button onclick="add('magicItems',-1)">−</button><div class="val" id="magicItems">0</div><button onclick="add('magicItems',1)">+</button>
+</div><div class="note">100 points each</div></div>
+
+<div class="card"><h2>PC Deaths</h2><div class="controls">
+<button onclick="add('deaths',1)">−10</button><div class="val" id="deaths">0</div><button onclick="add('deaths',-1)">undo</button>
+</div><div class="note">−10 points each</div></div>
+
+<div class="card"><h2>Luck Spent</h2><div class="controls">
+<button onclick="add('luck',1)">−2</button><div class="val" id="luck">0</div><button onclick="add('luck',-1)">undo</button>
+</div><div class="note">−2 points each</div></div>
+
+<div class="card"><h2>Gold Pieces</h2>
+<input id="gold" type="number" min="0" step="100" value="0" oninput="changeGold(this.value)">
+<div class="note">1 point per 100 GP</div></div>
+</div>
+
+<button class="reset" onclick="resetAll()">Reset Tracker</button>
+</main></div>
+<script>
+const KEY='evermorphStandaloneScoreKeeper';
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||{
+ tiles:0,face:0,time:0,monsters:0,magicItems:0,deaths:0,luck:0,gold:0,timeScored:false
+};
+const START=120*60;
+let endAt=Number(localStorage.getItem(KEY+'_endAt'))||Date.now()+START*1000;
+let running=localStorage.getItem(KEY+'_running')!=='false';
+
+function score(){return state.tiles+state.face+state.time+state.monsters+state.magicItems*100+
+Math.floor(state.gold/100)-state.deaths*10-state.luck*2}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));localStorage.setItem(KEY+'_endAt',endAt);localStorage.setItem(KEY+'_running',running)}
+function render(){
+ for(const k of Object.keys(state)){const e=document.getElementById(k);if(e)e.textContent=state[k]}
+ document.getElementById('gold').value=state.gold;
+ document.getElementById('total').textContent=score();
+ const b=document.getElementById('timeScore');
+ b.disabled=state.timeScored;b.textContent=state.timeScored?'TIME SCORED ✓':'TIME SCORE';
+}
+function add(k,n){state[k]=Math.max(0,(Number(state[k])||0)+Number(n));render();save()}
+function changeGold(v){state.gold=Math.max(0,Number(v)||0);render();save()}
+function remaining(){
+ if(!running)return Math.max(0,Math.floor((endAt-Date.now())/1000));
+ return Math.max(0,Math.floor((endAt-Date.now())/1000));
+}
+function tick(){
+ const s=remaining();const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+ document.getElementById('clock').textContent=`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+ if(s<=0){running=false;save()} render();
+}
+function scoreTime(){
+ if(state.timeScored)return;
+ const points=Math.floor(remaining()/10);
+ state.time+=points;state.timeScored=true;running=false;render();save();
+}
+function resetAll(){
+ if(!confirm('Reset the entire tracker?'))return;
+ state={tiles:0,face:0,time:0,monsters:0,magicItems:0,deaths:0,luck:0,gold:0,timeScored:false};
+ endAt=Date.now()+START*1000;running=true;render();save();
+}
+setInterval(tick,250);tick();render();
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install').style.display='block'});
+document.getElementById('install').onclick=async()=>{
+ if(!deferredPrompt)return;
+ deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;
+ document.getElementById('install').style.display='none';
+};
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+</script>
+</body></html>
